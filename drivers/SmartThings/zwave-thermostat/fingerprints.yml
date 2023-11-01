@@ -86,6 +86,11 @@ zwaveManufacturer:
     manufacturerId: 0x0002
     productType: 0x0005
     deviceProfileName: thermostat-heating-battery
+  - id: "5254/0004/8492"
+    deviceLabel: Remotec ZXT 800
+    manufacturerId: 0x5254
+    productType: 0x0004
+    deviceProfileName: remotec-zxt-800
 zwaveGeneric:
   - id: "GenericBatteryThermostat"
     deviceLabel: Z-Wave Battery Thermostat
