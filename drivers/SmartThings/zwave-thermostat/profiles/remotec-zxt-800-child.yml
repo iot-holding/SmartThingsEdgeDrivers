@@ -1,0 +1,22 @@
+name: remotec-zxt-800-child
+components:
+- id: main
+  capabilities:
+  - id: thermostatMode
+    version: 1
+  - id: thermostatFanMode
+    version: 1
+  - id: thermostatOperatingState
+    version: 1
+    config:
+      values:
+        - key: "thermostatOperatingState.value"
+          enabledValues:
+            - heating
+            - cooling
+            - fan only
+            - idle
+  - id: refresh
+    version: 1
+  categories:
+  - name: Thermostat

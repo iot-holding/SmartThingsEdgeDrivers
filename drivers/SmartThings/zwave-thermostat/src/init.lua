@@ -121,6 +121,7 @@ local driver_template = {
     require("qubino-flush-thermostat"),
     require("thermostat-heating-battery"),
     require("apiv6_bugfix"),
+    require("remotec-zxt-800")
   }
 }
 
