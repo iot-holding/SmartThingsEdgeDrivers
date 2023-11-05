@@ -30,3 +30,246 @@ components:
     version: 1
   categories:
   - name: Thermostat
+preferences:
+  - name: "learnACIRcode"
+    title: "Learn AC IR code"
+    description: "Learn AC IR code"
+    preferenceType: enumeration
+    required: false
+    definition:
+      options:
+          0: Disabled
+          1: ON (Resume)
+          2: 17°C Cool / 63°F Cool
+          3: 18°C Cool / 64°F Cool
+          4: 19°C Cool / 66°F (67°F Cool)
+          5: 20°C Cool / 68°F (69°F Cool)
+          6: 21°C Cool / 70°F (71°F Cool)
+          7: 22°C Cool / 72°F (73°F Cool)
+          8: 23°C Cool / 74°F (75°F Cool)
+          9: 24°C Cool / 76°F Cool
+          10: 25°C Cool / 77°F (78°F Cool)
+          11: 26°C Cool / 79°F (80°F Cool)
+          12: 27°C Cool / 81°F (82°F Cool)
+          13: 28°C Cool / 83°F (84°F Cool)
+          14: 29°C Cool / 85°F Cool
+          15: 30°C Cool / 86°F Cool
+          16: 17°C Heat / 63°F Heat
+          17: 18°C Heat / 64°F Heat
+          18: 19°C Heat / 66°F (67°F Heat)
+          19: 20°C Heat / 68°F (69°F Heat)
+          20: 21°C Heat / 70°F (71°F Heat)
+          21: 22°C Heat / 72°F (73°F Heat)
+          22: 23°C Heat / 74°F (75°F Heat)
+          23: 24°C Heat / 76°F Heat
+          24: 25°C Heat / 77°F (78°F Heat)
+          25: 26°C Heat / 79°F (78°F Heat)
+          26: 27°C Heat / 81°F (82°F Heat)
+          27: 28°C Heat / 83°F (84°F Heat)
+          28: 29°C Heat / 85°F Heat
+          29: 30°C Heat / 86°F Heat
+          30: Dry Mode
+          31: Auto Mode
+          32: Fan Mode
+      default: 0
+  - name: "learnAVIRCode"
+    title: "Learn AV IR code"
+    description: "Learn AV IR code"
+    preferenceType: enumeration
+    required: false
+    definition:
+      options:
+          0: Power
+          1: Input
+          2: Menu
+          3: Smart
+          4: Guide
+          5: Back
+          6: Up
+          7: Down
+          8: OK
+          9: Left
+          10: Right
+          11: VOL+
+          12: VOL-
+          13: Mute
+          14: Home
+          15: CH+
+          16: CH-
+          17: Skip-
+          18: Stop
+          19: Skip+
+          20: Play
+          21: Pause
+          22: Rewind
+          23: Record
+          24: Fast Forward
+          25: Red
+          26: Green
+          27: Yellow
+          28: Blue
+          29: 0
+          30: 1
+          31: 2
+          32: 3
+          33: 4
+          34: 5
+          35: 6
+          36: 7
+          37: 8
+          38: 9
+          39: 10
+          40: Info
+          41: Text
+      default: 0 
+  - name: "setIRCodefrombuiltinACL"
+    title: "Set IR Code from Library"
+    description: "Set IR Code from Library"
+    preferenceType: number
+    required: false
+    definition:
+      minimum: 0
+      maximum: 65535
+      default: 0 
+  - name: "extIREmitterPowerLevel"
+    title: "External IR Emitter power level"
+    description: "External IR Emitter power level"
+    preferenceType: enumeration
+    required: false
+    definition:
+      options:
+        0: normal power mode
+        255: high power mode
+      default: 255 
+  - name: "setAutoReportCondByTCh" 
+    title: "Set Auto Report Condition"
+    description: "Set Auto Report Condition, Trigger by Room Temperature change"
+    preferenceType: enumeration
+    required: false 
+    definition:
+      options:
+        0: Disable
+        1: 1°F (0.5°C)
+        2: 2°F (1°C)
+        3: 3°F (1.5°C)
+        4: 4°F (2°C)
+        5: 5°F (2.5°C)
+        6: 6°F (3°C)
+        7: 7°F (3.5°C)
+        8: 8°F (4°C)
+      default: 0
+  - name: "setBuiltInEmitterControl"
+    title: "Set built-in IR Emitter Control"
+    description: "Set built-in IR Emitter Control"
+    preferenceType: enumeration
+    required: false
+    definition:
+      options:
+        0: disable
+        255: enable
+      default: 255 
+  - name: "controlAirCondSwing"
+    title: "Air conditioner Swing"
+    description: "Control Air conditioner Swing function"
+    preferenceType: enumeration
+    required: false
+    definition:
+        options:
+          0: Swing OFF
+          1: Swing Auto (default)
+        default: 1
+  - name: "tempHumidAutoReport"
+    title: "Temperature / Humidity Auto Report"
+    description: "Temperature / Humidity Auto Report Interval"
+    preferenceType: enumeration
+    required: false
+    definition:
+        options:
+          0: Disabled
+          1: 15 mins
+          2: 30 mins
+          3: 1 Hr
+          4: 2 Hrs 
+          5: 3 Hrs
+          6: 4 Hrs
+          7: 8 Hrs
+        default: 0 
+  - name: "calibrateTempReading"
+    title: "Calibrate temperature reading"
+    description: "Calibrate temperature reading offset"
+    preferenceType: enumeration
+    required: false
+    definition:
+        options:
+          0:  0°C (default)
+          1:  0.5°C
+          2:  1°C
+          3: 1.5°C
+          4: 2°C 
+          5: 2.5°C
+          6: 3°C
+          7: 3.5°C
+          8: 4°C
+          9: 4.5°C
+          10:  5°C
+          255: -0.5°C
+          254: -1°C
+          253: -1.5°C
+          252: -2°C
+          251: -2.5°C
+          250: -3°C
+          249: -3.5°C
+          248: -4°C
+          247: -4.5°C
+          246: -5°C
+        default: 0 
+  - name: "selectAVEndpoint"
+    title: "Select AV Endpoint"
+    description: "Select AV Endpoint"
+    preferenceType: enumeration
+    required: false
+    definition:
+        options:
+          2: end point 2 (AV1)
+          3: end point 3 (AV2)
+          4: end point 4 (AV3) 
+        default: 2
+  - name: "calibrateHumidityReading"
+    title: "Calibrate humidity reading"
+    description: "Calibrate humidity reading"
+    preferenceType: number
+    required: false
+    definition:
+      minimum: 0
+      maximum: 255
+      default: 0
+  - name: "triggerBLEAdvertising"
+    title: "Trigger BLE Advertising"
+    description: "Trigger BLE Advertising"
+    preferenceType: enumeration
+    required: false
+    definition:
+      options:
+        0: Disable BLE advertising
+        255: Enable BLE advertising 
+      default: 0
+  - name: "bleAdvertisingOption"
+    title: "BLE Advertising option"
+    description: "BLE Advertising option"
+    preferenceType: enumeration
+    required: false
+    definition:
+      options:
+        0: advertises for 10 minutes
+        1: keep advertising
+      default: 0
+  - name: "deviceResetToDefault"
+    title: "Device reset to default"
+    description: "Device reset to default"
+    preferenceType: enumeration
+    required: false
+    definition:
+      options:
+        0: no factory reset
+        255: device reset to default
+      default: 0   
