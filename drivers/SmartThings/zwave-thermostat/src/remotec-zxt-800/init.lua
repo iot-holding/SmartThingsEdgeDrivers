@@ -22,12 +22,12 @@ local Configuration = (require "st.zwave.CommandClass.Configuration")({version=1
 --- @type remotec-zxt-800.SimpleAVControl
 local AVControl = (require "remotec-zxt-800.SimpleAVControl")({version=3})
 local SensorMultiLevel = (require "st.zwave.CommandClass.SensorMultilevel")({version = 2})
-
+local log = require "log"
 local utils = require "st.utils"
 
 local ENDPOINTS = {
-  parent = 1,
-  child = 2
+  parent = 0,
+  child = 1
 }
 
 local REMOTEC_FINGERPRINTS = {
@@ -45,6 +45,7 @@ local function can_handle_remotec(opts, driver, device, ...)
 
 
   local function component_to_endpoint(device, component)
+    log.debug(ENDPOINTS)
     return { ENDPOINTS.parent }
 end
 local function info_changed(driver, device, event, args)
@@ -66,7 +67,9 @@ local function find_child(parent, ep_id)
 local function do_refresh(driver, device, command)
     local component = command and command.component and command.component or "main"
     device:send_to_component(SensorMultiLevel:Get({}), component)
-    device:refresh()
+    device:send(SensorMultilevel:Get({}))
+    device:send(thermostatFanMode:Get({}))
+    device:send(thermostatMode:Get({}))
   end
 
 local function device_added(driver, device, event)
@@ -85,7 +88,7 @@ local function device_added(driver, device, event)
       }
       driver:try_create_device(metadata)
     end
-    do_refresh(driver, device)
+    
   end
 
 local function device_init(driver, device, event)
@@ -96,15 +99,11 @@ local function device_init(driver, device, event)
   end
 local remotec_controller = {
     NAME = "remotec-zxt-800",
-    supported_capabilities = {
-      capabilities.temperatureMeasurement,
-      capabilities.relativeHumidityMeasurement
-    },
     zwave_handlers = {
         [cc.SIMPLE_AV_CONTROL] = {
           [AVControl.REPORT] = simpleAVHandler
         }
-    }
+    },
     lifecycle_handlers = {
         init = device_init,
         added = device_added,
