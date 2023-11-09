@@ -1,0 +1,125 @@
+name: switch-shelly-wave-1
+components:
+- id: main
+  capabilities:
+  - id: switch
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+  - name: Switch
+preferences:
+  - name: "switchType"
+    title: "Parameter 01: SW1 Switch type"
+    description: "This parameter defines how the Device should treat the switch (which type) connected to the SW (SW1) terminal."
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        0 : "momentary switch"
+        1 : "Toggle based on contact"
+        2 : "Syncronized Switch/Status"
+      default: 2
+  - name: "restorePowerFailure"
+    title: "Parameter 17: Restore Powerfailure"
+    description: "Restore state after power failure"
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        0 : "Save last state"
+        1 : "Remains Off after Powerfailure"
+      default: 0
+  - name: "autoOff"
+    title: "Parameter 19: Auto Off with Timer"
+    description: "Auto Off with Timer"
+    required: false
+    preferenceType: number
+    definition:
+      minimum: 0
+      maximum: 32535
+      default: 0
+  - name: "autoOn"
+    title: "Parameter 20: Auto ON with Timer"
+    description: "Auto ON with Timer"
+    required: false
+    preferenceType: number
+    definition:
+      minimum: 0
+      maximum: 32535
+      default: 0
+  - name: "contactType"
+    title: "Parameter 23: Contact type - NO/NC"
+    description: "Contact type - NO/NC"
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        0 : "N0"
+        1 : "NC"
+      default: 0
+  - name: "timerUnits"
+    title: "Parameter 25: Timer units for O"
+    description: "Set timer units to s or ms for O (O1)"
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        0 : "Seconds"
+        1 : "Milliseconds"
+      default: 0
+  - name: "waterAlarm"
+    title: "Parameter 91: Water Alarm"
+    description: "Which alarm frames the Device should respond to and how"
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        0 : "no action"
+        1 : "open relay"
+        2 : "close relay"
+      default: 0
+  - name: "smokeAlarm"
+    title: "Parameter 92: Smoke Alarm"
+    description: "Which alarm frames the Device should respond to and how"
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        0 : "no action"
+        1 : "open relay"
+        2 : "close relay"
+      default: 0
+  - name: "coAlarm"
+    title: "Parameter 93: CO Alarm"
+    description: "Which alarm frames the Device should respond to and how"
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        0 : "no action"
+        1 : "open relay"
+        2 : "close relay"
+      default: 0
+  - name: "heatAlarm"
+    title: "Parameter 94: Heat Alarm"
+    description: "Which alarm frames the Device should respond to and how"
+    required: false
+    preferenceType: enumeration
+    definition:
+      options:
+        0 : "no action"
+        1 : "open relay"
+        2 : "close relay"
+      default: 0
+  - name: "ledSignalIntensity"
+    title: "Parameter 105: LED intensity"
+    description: "LED Signalisation intensity"
+    required: false
+    preferenceType: number
+    definition:
+      minimum: 0
+      maximum: 100
+      default: 0
+
+      

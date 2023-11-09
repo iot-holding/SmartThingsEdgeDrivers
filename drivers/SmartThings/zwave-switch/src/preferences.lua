@@ -301,6 +301,26 @@ local devices = {
       dimmerPaddleControl = {parameter_number = 27, size = 1}
     }
   },
+  SHELLY_WAVE_1 = {
+    MATCHING_MATRIX = {
+      mfrs = 0x0460,
+      product_types = 0x0002,
+      product_ids = 0x0083
+    },
+    PARAMETERS = {
+      switchType = {parameter_number = 1, size = 1},
+      restorePowerFailure = {parameter_number = 17, size = 1},
+      autoOff = {parameter_number = 19, size = 2},
+      autoOn = {parameter_number = 20, size = 2},
+      contactType = {parameter_number = 23, size = 1},
+      timerUnits = {parameter_number = 25, size = 1},
+      waterAlarm = {parameter_number = 91, size = 4},
+      smokeAlarm = {parameter_number = 92, size = 4},
+      coAlarm = {parameter_number = 93, size = 4},
+      heatAlarm = {parameter_number = 94, size = 4},
+      ledSignalIntensity = {parameter_number = 105, size = 1}
+    }
+  },
   SWITCH_LEVEL_INDICATOR = {
     MATCHING_MATRIX = {
       mfrs = 0x0063,

@@ -898,6 +898,12 @@ zwaveManufacturer:
     manufacturerId: 0x010F
     productType: 0x0102
     deviceProfileName: fibaro-dimmer-2
+  - id: 0460/0002/0083
+    deviceLabel: Shelly Wave 1
+    manufacturerId: 0x0460
+    productType: 0x0002
+    productId: 0x0083
+    deviceProfileName: switch-shelly-wave-1
 zwaveGeneric:
   - id: "GenericSwitch/1"
     deviceLabel: Switch
