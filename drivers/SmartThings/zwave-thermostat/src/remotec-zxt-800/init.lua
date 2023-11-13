@@ -69,8 +69,10 @@ local function find_child(parent, ep_id)
 local function do_refresh(driver, device, command)
     local component = command and command.component and command.component or "main"
     device:send_to_component(SensorMultiLevel:Get({}), component)
-    device:send_to_component(thermostatFanMode:Get({}), component)
-    device:send_to_component(thermostatMode:Get({}), component)
+  end
+
+local function component_to_endpoint(device, component)
+    return { ENDPOINTS.parent }
   end
 
 local function device_added(driver, device, event)
@@ -78,7 +80,7 @@ local function device_added(driver, device, event)
       not (device.child_ids and utils.table_size(device.child_ids) ~= 0) and
       find_child(device, ENDPOINTS.child1) == nil then
   
-      local name = string.format("%s %s", device.label, "EP 1")
+      local name = string.format("%s %s", "ZXT 800 ", "EP 1")
       local metadata = {
         type = "EDGE_CHILD",
         label = name,
@@ -94,7 +96,7 @@ local function device_added(driver, device, event)
       not (device.child_ids and utils.table_size(device.child_ids) ~= 0) and
       find_child(device, ENDPOINTS.child2) == nil then
   
-      local name = string.format("%s %s", device.label, "EP 2")
+      local name = string.format("%s %s", "ZXT 800 ", "EP 2")
       local metadata = {
         type = "EDGE_CHILD",
         label = name,
@@ -110,7 +112,7 @@ local function device_added(driver, device, event)
       not (device.child_ids and utils.table_size(device.child_ids) ~= 0) and
       find_child(device, ENDPOINTS.child3) == nil then
   
-      local name = string.format("%s %s", device.label, "EP 3")
+      local name = string.format("%s %s", "ZXT 800 ", "EP 3")
       local metadata = {
         type = "EDGE_CHILD",
         label = name,
@@ -121,15 +123,15 @@ local function device_added(driver, device, event)
       }
       driver:try_create_device(metadata)
     end
-    
+    do_refresh(driver, device)
   end
+
 
 local function device_init(driver, device, event)
     if device.network_type == st_device.NETWORK_TYPE_ZWAVE then
       device:set_find_child(find_child)
       device:set_component_to_endpoint_fn(component_to_endpoint)
     end
-    do_refresh(self, device)
   end
 local remotec_controller = {
     NAME = "remotec-zxt-800",
