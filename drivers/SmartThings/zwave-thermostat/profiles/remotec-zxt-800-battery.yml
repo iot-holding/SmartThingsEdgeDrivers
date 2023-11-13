@@ -1,4 +1,4 @@
-name: remotec-zxt-800
+name: remotec-zxt-800-battery
 components:
 - id: main
   capabilities:
@@ -23,6 +23,8 @@ components:
   - id: thermostatOperatingState
     version: 1
   - id: powerSource
+    version: 1
+  - id: battery
     version: 1
   - id: refresh
     version: 1

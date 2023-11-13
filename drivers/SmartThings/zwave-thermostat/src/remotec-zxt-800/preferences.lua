@@ -21,12 +21,12 @@ local REMOTEC_ZXT800_ZWAVE = {
     learnACIRcode = { parameter_number = 25, size = 1 },
     learnAVIRCode ={ parameter_number = 26, size = 1 },
     setIRCodefrombuiltinACL ={ parameter_number = 27, size = 2 },
-    extIREmitterPowerLevel = { parameter_number = 28, size = 1 }, 
-    setAutoReportCondByTCh = { parameter_number = 30, size = 1 }, 
-    setBuiltInEmitterControl = { parameter_number = 32, size = 1 }, 
+    extIREmitterPowerLevel = { parameter_number = 28, size = 1 },
+    setAutoReportCondByTCh = { parameter_number = 30, size = 1 },
+    setBuiltInEmitterControl = { parameter_number = 32, size = 1 },
     controlAirCondSwing = { parameter_number = 33, size = 1 },
     tempHumidAutoReport = { parameter_number = 34, size = 1 },
-    calibrateTempReading = { parameter_number = 37, size = 1 }, 
+    calibrateTempReading = { parameter_number = 37, size = 1 },
     selectAVEndpoint = { parameter_number = 38, size = 1 },
     calibrateHumidityReading = { parameter_number = 53, size = 1 },
     triggerBLEAdvertising = { parameter_number = 60, size = 1 },
@@ -59,7 +59,7 @@ preferences.update_preferences = function(driver, device, args)
       device:send(Configuration:Set({ parameter_number = preferences[id].parameter_number, size = preferences[id].size,
         configuration_value = newParameterValue }))
       device:set_field(id, true, { persist = true })
-      device:send(Configuration:Get({ parameter_number = preferences[id].parameter_number }))
+      --device:send(Configuration:Get({ parameter_number = preferences[id].parameter_number }))
     end
   end
 end
