@@ -27,7 +27,9 @@ local utils = require "st.utils"
 
 local ENDPOINTS = {
   parent = 0,
-  child = 1
+  child1 = 1,
+  child2 = 2,
+  child3 = 3
 }
 
 local REMOTEC_FINGERPRINTS = {
@@ -67,23 +69,54 @@ local function find_child(parent, ep_id)
 local function do_refresh(driver, device, command)
     local component = command and command.component and command.component or "main"
     device:send_to_component(SensorMultiLevel:Get({}), component)
-    device:send(SensorMultilevel:Get({}))
-    device:send(thermostatFanMode:Get({}))
-    device:send(thermostatMode:Get({}))
+    device:send_to_component(thermostatFanMode:Get({}), component)
+    device:send_to_component(thermostatMode:Get({}), component)
   end
 
 local function device_added(driver, device, event)
     if device.network_type == st_device.NETWORK_TYPE_ZWAVE and
       not (device.child_ids and utils.table_size(device.child_ids) ~= 0) and
-      find_child(device, ENDPOINTS.child) == nil then
+      find_child(device, ENDPOINTS.child1) == nil then
   
-      local name = string.format("%s %s", device.label, "Sensors")
+      local name = string.format("%s %s", device.label, "EP 1")
       local metadata = {
         type = "EDGE_CHILD",
         label = name,
         profile = "remotec-zxt-800-child",
         parent_device_id = device.id,
-        parent_assigned_child_key = string.format("%02X", ENDPOINTS.child),
+        parent_assigned_child_key = string.format("%02X", ENDPOINTS.child1),
+        vendor_provided_label = name,
+      }
+      driver:try_create_device(metadata)
+    end
+
+    if device.network_type == st_device.NETWORK_TYPE_ZWAVE and
+      not (device.child_ids and utils.table_size(device.child_ids) ~= 0) and
+      find_child(device, ENDPOINTS.child2) == nil then
+  
+      local name = string.format("%s %s", device.label, "EP 2")
+      local metadata = {
+        type = "EDGE_CHILD",
+        label = name,
+        profile = "remotec-zxt-800-child",
+        parent_device_id = device.id,
+        parent_assigned_child_key = string.format("%02X", ENDPOINTS.child2),
+        vendor_provided_label = name,
+      }
+      driver:try_create_device(metadata)
+    end
+
+    if device.network_type == st_device.NETWORK_TYPE_ZWAVE and
+      not (device.child_ids and utils.table_size(device.child_ids) ~= 0) and
+      find_child(device, ENDPOINTS.child3) == nil then
+  
+      local name = string.format("%s %s", device.label, "EP 3")
+      local metadata = {
+        type = "EDGE_CHILD",
+        label = name,
+        profile = "remotec-zxt-800-child",
+        parent_device_id = device.id,
+        parent_assigned_child_key = string.format("%02X", ENDPOINTS.child3),
         vendor_provided_label = name,
       }
       driver:try_create_device(metadata)
@@ -96,6 +129,7 @@ local function device_init(driver, device, event)
       device:set_find_child(find_child)
       device:set_component_to_endpoint_fn(component_to_endpoint)
     end
+    do_refresh(self, device)
   end
 local remotec_controller = {
     NAME = "remotec-zxt-800",

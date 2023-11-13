@@ -2,20 +2,20 @@ name: remotec-zxt-800-child
 components:
 - id: main
   capabilities:
-  - id: illuminanceMeasurement
+  - id: thermostatMode
+    version: 1
+  - id: thermostatFanMode
+    version: 1
+  - id: thermostatOperatingState
     version: 1
     config:
       values:
-        - key: "illuminance.value"
-          range: [0, 32000]
-  - id: temperatureMeasurement
-    version: 1
-    config:
-      values:
-        - key: "temperature.value"
-          range: [-20, 100]
-  - id: relativeHumidityMeasurement
-    version: 1
+        - key: "thermostatOperatingState.value"
+          enabledValues:
+            - heating
+            - cooling
+            - fan only
+            - idle
   - id: refresh
     version: 1
   categories:
