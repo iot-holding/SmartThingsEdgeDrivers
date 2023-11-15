@@ -2,6 +2,18 @@ name: remotec-zxt-800-child
 components:
 - id: main
   capabilities:
+  - id: thermostatHeatingSetpoint
+    version: 1
+    config:
+      values:
+        - key: "heatingSetpoint.value"
+          range: [ 17, 30 ]
+  - id: thermostatCoolingSetpoint
+    version: 1
+    config:
+      values:
+        - key: "coolingSetpoint.value"
+          range: [ 17, 30 ]
   - id: thermostatMode
     version: 1
   - id: thermostatFanMode

@@ -15,13 +15,12 @@
 local preferencesMap = require "remotec-zxt-800.preferences"
 local st_device = require "st.device"
 local capabilities = require "st.capabilities"
+local socket = require "cosock.socket"
 
 --- @type st.zwave.CommandClass
 local cc = require "st.zwave.CommandClass"
---- @type st.zwave.CommandClass.Configuration
-local Configuration = (require "st.zwave.CommandClass.Configuration")({version=1})
 --- @type remotec-zxt-800.SimpleAVControl
-local AVControl = (require "remotec-zxt-800.SimpleAVControl")({version=3})
+local AVControl = (require "remotec-zxt-800.SimpleAVControl")({version = 4})
 --- @type st.zwave.CommandClass.SensorMultilevel
 local SensorMultiLevel = (require "st.zwave.CommandClass.SensorMultilevel")({version = 2})
 --- @type st.zwave.CommandClass.ThermostatFanMode
@@ -31,6 +30,8 @@ local ThermostatMode = (require "st.zwave.CommandClass.ThermostatMode")({ versio
 
 local log = require "log"
 local utils = require "st.utils"
+
+local LAST_COMMAND = 'last_command'
 
 local ENDPOINTS = {
   parent = 0,
@@ -66,6 +67,8 @@ local function info_changed(driver, device, event, args)
 
 local function simpleAVHandler(driver, device, event, args)
     log.debug("simpleAVHandler called!")
+  log.debug(utils.stringify_table(event, "simpleAVHandler event", true))
+  log.debug(utils.stringify_table(args, "simpleAVHandler args", true))
   end
 
 local function find_child(parent, ep_id)
@@ -77,42 +80,71 @@ local function find_child(parent, ep_id)
   end
 
 local function do_refresh(driver, device, command)
-    device:refresh()
-    device:send(SensorMultiLevel:Get({}))
-    device:send(ThermostatMode:SupportedGet({}))
-    device:send(ThermostatFanMode:SupportedGet({}))
+  local ep = command.args.end_point
+  device:refresh()
+  device:send(SensorMultiLevel:Get({}):to_endpoint(ep))
+  device:send(ThermostatMode:SupportedGet({}):to_endpoint(ep))
+  device:send(ThermostatFanMode:SupportedGet({}):to_endpoint(ep))
 end
 
 local function component_to_endpoint(device, component)
-    return { ENDPOINTS.parent }
+  return { ENDPOINTS.parent }
+end
+
+local function switch_handler_factory(av_key)
+  return function (driver, device, command)
+    local ep = command.args.end_point or 1
+    local cmd = device:get_field(LAST_COMMAND) ~= 0x0027 and 0x0027 or 0x0024
+    log.debug("cmd:", cmd)
+    device:set_field(LAST_COMMAND, cmd)
+    device:send(AVControl:Set({ key_attributes = 0, vg = {{command = cmd}}}))
+    --device:send(AVControl:Get({}):to_endpoint(ep))
+    device:send(AVControl:Get({}))
   end
+end
+
+local function create_child_devices(driver, device)
+  for i = 1, ENDPOINTS.children do
+    local name = string.format("%s %s", device.label, " - AV Control #" .. i)
+    local metadata = {
+        type = "EDGE_CHILD",
+        label = name,
+        profile = "remotec-zxt-800-child-fourtyone-buttons",
+        parent_device_id = device.id,
+        parent_assigned_child_key = string.format("%02X", i + 1),
+        vendor_provided_label = name,
+      }
+      driver:try_create_device(metadata)
+  end
+end
 
 local function device_added(driver, device, event)
-    if device.network_type == st_device.NETWORK_TYPE_ZWAVE and
-      not (device.child_ids and utils.table_size(device.child_ids) ~= 0) then
+  device:emit_event(capabilities.thermostatMode.supportedThermostatModes(supported_modes, { visibility = { displayed = false } }))
+  if device.network_type == st_device.NETWORK_TYPE_ZWAVE and
+    not (device.child_ids and utils.table_size(device.child_ids) ~= 0) then
 
-      for i=1, ENDPOINTS.children do
-        if find_child(device, i) == nil then
-
-        local name = string.format("%s %s", "ZXT 800 ", "EP " .. i)
-        local metadata = {
-          type = "EDGE_CHILD",
-          label = name,
-          profile = "remotec-zxt-800-child",
-          parent_device_id = device.id,
-          parent_assigned_child_key = string.format("%02X", i),
-          vendor_provided_label = name,
-        }
-        driver:try_create_device(metadata)
+    create_child_devices(driver, device)
+    log.debug("Childs Created ... Set btn caps")
+    -- Set Button Capabilities for scene switches
+    if device:supports_capability_by_id(capabilities.button.ID) then
+      log.debug("Setting button capabilities")
+      for _, component in pairs(device.profile.components) do
+        device:emit_component_event(component,
+          capabilities.button.supportedButtonValues({ "pushed" }, { visibility = { displayed = false } }))
+        if component.id == "main" then
+          device:emit_component_event(component,
+            capabilities.button.numberOfButtons({ value = 20 }, { visibility = { displayed = false } }))
+        else
+          device:emit_component_event(component,
+            capabilities.button.numberOfButtons({ value = 1 }, { visibility = { displayed = false } }))
         end
-      device:emit_event(capabilities.thermostatMode.supportedThermostatModes(supported_modes,
-        { visibility = { displayed = false } }))
+        -- Without this time delay, the state of some buttons cannot be updated
+        --socket.sleep(1)
       end
     end
-    device:emit_event(capabilities.thermostatMode.supportedThermostatModes(supported_modes,
-    { visibility = { displayed = false } }))
-    do_refresh(driver, device)
   end
+  do_refresh(driver, device)
+end
 
 
 local function device_init(driver, device, event)
@@ -127,6 +159,12 @@ local remotec_controller = {
     zwave_handlers = {
         [cc.SIMPLE_AV_CONTROL] = {
           [AVControl.REPORT] = simpleAVHandler
+        }
+    },
+    capability_handlers = {
+        [capabilities.switch.ID] = {
+          [capabilities.switch.commands.on.NAME] = switch_handler_factory(0x00), -- Power
+          [capabilities.switch.commands.off.NAME] = switch_handler_factory(0x0D) -- Mute
         }
     },
     lifecycle_handlers = {

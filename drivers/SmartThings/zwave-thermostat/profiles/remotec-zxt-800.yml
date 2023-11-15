@@ -9,9 +9,13 @@ components:
     config:
       values:
         - key: "heatingSetpoint.value"
-          range: [ 4, 28 ]
+          range: [ 17, 30 ]
   - id: thermostatCoolingSetpoint
     version: 1
+    config:
+      values:
+        - key: "coolingSetpoint.value"
+          range: [ 17, 30 ]
   - id: thermostatMode
     version: 1
   - id: thermostatFanMode
@@ -44,7 +48,7 @@ preferences:
           11: 26°C Cool / 79°F (80°F Cool)
           12: 27°C Cool / 81°F (82°F Cool)
           13: 28°C Cool / 83°F (84°F Cool)
-          14: 29°C Cool / 85°F Cool
+          14: 29°C Cool / 85°F Coolcc
           15: 30°C Cool / 86°F Cool
           16: 17°C Heat / 63°F Heat
           17: 18°C Heat / 64°F Heat
@@ -113,7 +117,7 @@ preferences:
           39: 10
           40: Info
           41: Text
-      default: 0 
+      default: 0
   - name: "setIRCodefrombuiltinACL"
     title: "Set IR Code from Library"
     description: "Set IR Code from Library"
@@ -122,7 +126,7 @@ preferences:
     definition:
       minimum: 0
       maximum: 65535
-      default: 0 
+      default: 0
   - name: "extIREmitterPowerLevel"
     title: "External IR Emitter power level"
     description: "External IR Emitter power level"
@@ -132,12 +136,12 @@ preferences:
       options:
         0: normal power mode
         255: high power mode
-      default: 255 
-  - name: "setAutoReportCondByTCh" 
+      default: 255
+  - name: "setAutoReportCondByTCh"
     title: "Set Auto Report Condition"
     description: "Set Auto Report Condition, Trigger by Room Temperature change"
     preferenceType: enumeration
-    required: false 
+    required: false
     definition:
       options:
         0: Disable
@@ -159,7 +163,7 @@ preferences:
       options:
         0: disable
         255: enable
-      default: 255 
+      default: 255
   - name: "controlAirCondSwing"
     title: "Air conditioner Swing"
     description: "Control Air conditioner Swing function"
@@ -181,11 +185,11 @@ preferences:
           1: 15 mins
           2: 30 mins
           3: 1 Hr
-          4: 2 Hrs 
+          4: 2 Hrs
           5: 3 Hrs
           6: 4 Hrs
           7: 8 Hrs
-        default: 0 
+        default: 0
   - name: "calibrateTempReading"
     title: "Calibrate temperature reading"
     description: "Calibrate temperature reading offset"
@@ -197,7 +201,7 @@ preferences:
           1:  0.5°C
           2:  1°C
           3: 1.5°C
-          4: 2°C 
+          4: 2°C
           5: 2.5°C
           6: 3°C
           7: 3.5°C
@@ -214,7 +218,7 @@ preferences:
           248: -4°C
           247: -4.5°C
           246: -5°C
-        default: 0 
+        default: 0
   - name: "selectAVEndpoint"
     title: "Select AV Endpoint"
     description: "Select AV Endpoint"
@@ -224,7 +228,7 @@ preferences:
         options:
           2: end point 2 (AV1)
           3: end point 3 (AV2)
-          4: end point 4 (AV3) 
+          4: end point 4 (AV3)
         default: 2
   - name: "calibrateHumidityReading"
     title: "Calibrate humidity reading"
@@ -243,7 +247,7 @@ preferences:
     definition:
       options:
         0: Disable BLE advertising
-        255: Enable BLE advertising 
+        255: Enable BLE advertising
       default: 0
   - name: "bleAdvertisingOption"
     title: "BLE Advertising option"
@@ -264,4 +268,4 @@ preferences:
       options:
         0: no factory reset
         255: device reset to default
-      default: 0   
+      default: 0
