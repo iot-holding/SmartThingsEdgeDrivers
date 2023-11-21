@@ -80,11 +80,8 @@ local function find_child(parent, ep_id)
   end
 
 local function do_refresh(driver, device, command)
-  local ep = command.args.end_point
+  --local ep = command.src_channel
   device:refresh()
-  device:send(SensorMultiLevel:Get({}):to_endpoint(ep))
-  device:send(ThermostatMode:SupportedGet({}):to_endpoint(ep))
-  device:send(ThermostatFanMode:SupportedGet({}):to_endpoint(ep))
 end
 
 local function component_to_endpoint(device, component)
@@ -94,18 +91,20 @@ end
 local function switch_handler_factory(av_key)
   return function (driver, device, command)
     local ep = command.args.end_point or 1
-    local cmd = device:get_field(LAST_COMMAND) ~= 0x0027 and 0x0027 or 0x0024
+    local cmd = device:get_field(LAST_COMMAND) ~= 0x0000 and 0 or 13
+    local event = cmd == 0 and capabilities.switch.switch.on() or capabilities.switch.switch.off()
     log.debug("cmd:", cmd)
     device:set_field(LAST_COMMAND, cmd)
     device:send(AVControl:Set({ key_attributes = 0, vg = {{command = cmd}}}))
     --device:send(AVControl:Get({}):to_endpoint(ep))
     device:send(AVControl:Get({}))
+    device:emit_event(event)
   end
 end
 
 local function create_child_devices(driver, device)
   for i = 1, ENDPOINTS.children do
-    local name = string.format("%s %s", device.label, " - AV Control #" .. i)
+    local name = string.format("%s %s", "ZXT 800", "AV #" .. i)
     local metadata = {
         type = "EDGE_CHILD",
         label = name,
@@ -119,6 +118,21 @@ local function create_child_devices(driver, device)
 end
 
 local function device_added(driver, device, event)
+
+  if device:is_cc_supported(cc.BATTERY) then
+    log.debug("Battery supported")
+    device:try_update_metadata({profile = "remotec-zxt-800-battery"})
+
+    device.thread:call_with_delay(2,
+      function()
+        device:emit_event(capabilities.powerSource.powerSource.battery())
+      end
+    )
+  else
+    log.debug("Mains supported")
+    device:emit_event(capabilities.powerSource.powerSource.mains())
+  end
+
   device:emit_event(capabilities.thermostatMode.supportedThermostatModes(supported_modes, { visibility = { displayed = false } }))
   if device.network_type == st_device.NETWORK_TYPE_ZWAVE and
     not (device.child_ids and utils.table_size(device.child_ids) ~= 0) then
@@ -144,6 +158,7 @@ local function device_added(driver, device, event)
     end
   end
   do_refresh(driver, device)
+  device:emit_event(capabilities.switch.switch.off())
 end
 
 
@@ -156,6 +171,9 @@ end
 
 local remotec_controller = {
     NAME = "remotec-zxt-800",
+    supported_capabilities = {
+        capabilities.powerSource
+    },
     zwave_handlers = {
         [cc.SIMPLE_AV_CONTROL] = {
           [AVControl.REPORT] = simpleAVHandler
