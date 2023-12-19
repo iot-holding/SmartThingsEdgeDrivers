@@ -4,7 +4,9 @@ components:
     capabilities:
       - id: keypadInput
         version: 1
-      - id: firmwareUpdate
+      - id: mediaPlayback
+        version: 1
+      - id: tV
         version: 1
       - id: refresh
         version: 1

@@ -38,7 +38,7 @@ local LAST_SEQUENCE = 'last_sequence'
 
 local ENDPOINTS = {
   parent = 1,
-  children = 3
+  children = 1
 }
 
 local supported_modes = {
@@ -107,7 +107,6 @@ local function do_refresh(driver, device, command)
   --local ep = command.src_channel
   device:refresh()
 end
-
 local function component_to_endpoint(device, component)
   return { ENDPOINTS.parent }
 end
@@ -197,37 +196,68 @@ local function device_added(driver, device, event)
   device:emit_event(capabilities.switch.switch.off())
 end
 
-local configure_handler = function(self, device)
-  --[[ local variable_speed_eps = device:get_endpoints(clusters.MediaPlayback.ID,
-    { feature_bitmap = clusters.MediaPlayback.types.MediaPlaybackFeature.VARIABLE_SPEED })
+local tV_handler = function(self,device)
 
-  if #variable_speed_eps > 0 then
-    device:emit_event(capabilities.mediaPlayback.supportedPlaybackCommands({
-      capabilities.mediaPlayback.commands.play.NAME,
-      capabilities.mediaPlayback.commands.pause.NAME,
-      capabilities.mediaPlayback.commands.stop.NAME,
-      capabilities.mediaPlayback.commands.rewind.NAME,
-      capabilities.mediaPlayback.commands.fastForward.NAME
-    }))
+  local endpoint_id = device:component_to_endpoint(cmd.component)
+
+  local KEY_MAP = {
+    ["channelDown"] = 0x0005,
+    ["channelUp"] = 0x0004,
+    ["volumeDown"] = 0x0002,
+    ["volumeUp"] = 0x0003}
+
+  if sequ_num < 1 then
+    sequ_num = sequ_num + 1
+  elseif sequ_num >= 65535 then
+    sequ_num = 0
   else
-    device:emit_event(capabilities.mediaPlayback.supportedPlaybackCommands({
-      capabilities.mediaPlayback.commands.play.NAME,
-      capabilities.mediaPlayback.commands.pause.NAME,
-      capabilities.mediaPlayback.commands.stop.NAME
-    }))
+    sequ_num = sequ_num + 1
   end
 
-  --Note cluster command support is not checked
-  device:emit_event(capabilities.mediaTrackControl.supportedTrackControlCommands({
-    capabilities.mediaTrackControl.commands.previousTrack.NAME,
-    capabilities.mediaTrackControl.commands.nextTrack.NAME,
-  }))
- ]]
+  device:set_field(LAST_SEQUENCE, sequ_num)
+  local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[cmd.args.keyCode] } } }
+  log.debug("cmd:", KEY_MAP[cmd.args.keyCode])
+  log.debug(utils.stringify_table(av_cmd, "av_cmd", true))
+  device:set_field(LAST_COMMAND, KEY_MAP[cmd.args.keyCode])
+  local selected_enpoint = tonumber(device.preferences.selectAVEndpoint) or 2
+  log.debug("selectedEndpoint:", selected_enpoint)
+  device:send(AVControl:Set(av_cmd)):to_endpoint(selected_enpoint)
+end
+
+local mediaPlayback_handler = function(self, device)
+  local endpoint_id = device:component_to_endpoint(cmd.component)
+  local KEY_MAP = {
+      ["play"] = 0x0013,
+      ["pause"] = 0x0015,
+      ["stop"] = 0x0014,
+      ["rewind"] = 0x0017,
+      ["fastForward"] = 0x0016}
+
+    if sequ_num < 1 then
+      sequ_num = sequ_num + 1
+    elseif sequ_num >= 65535 then
+      sequ_num = 0
+    else
+      sequ_num = sequ_num + 1
+    end
+
+    device:set_field(LAST_SEQUENCE, sequ_num)
+    local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[cmd.args.keyCode] } } }
+    log.debug("cmd:", KEY_MAP[cmd.args.keyCode])
+    log.debug(utils.stringify_table(av_cmd, "av_cmd", true))
+    device:set_field(LAST_COMMAND, KEY_MAP[cmd.args.keyCode])
+    local selected_enpoint = tonumber(device.preferences.selectAVEndpoint) or 2
+    log.debug("selectedEndpoint:", selected_enpoint)
+    device:send(AVControl:Set(av_cmd)):to_endpoint(selected_enpoint)
+end
+
+local configure_handler = function(self, device)
+
   --Note NV, LK, and NK features are not checked to determine if only a subset of these should be supported
   if device:supports_capability_by_id(capabilities.keypadInput.ID) then
     device:emit_event(capabilities.keypadInput.supportedKeyCodes({
       "UP",
-      "DOWN"--[[ ,
+      "DOWN",
       "LEFT",
       "RIGHT",
       "SELECT",
@@ -245,57 +275,34 @@ local configure_handler = function(self, device)
       "NUMBER6",
       "NUMBER7",
       "NUMBER8",
-      "NUMBER9" ]]
+      "NUMBER9"
     }))
-    --[[ ,
-    "UP",
-    "DOWN",
-    "LEFT",
-    "RIGHT",
-    "SELECT",
-    "BACK",
-    "EXIT",
-    "MENU",
-    "SETTINGS",
-    "HOME",
-    "NUMBER0",
-    "NUMBER1",
-    "NUMBER2",
-    "NUMBER3",
-    "NUMBER4",
-    "NUMBER5",
-    "NUMBER6",
-    "NUMBER7",
-    "NUMBER8",
-    "NUMBER9", ]]
   end
 end
 
 local function handle_send_key(driver, device, cmd)
   local endpoint_id = device:component_to_endpoint(cmd.component)
   local KEY_MAP = {
-    --[[["POWER"] = 0x0027,
-    ["MUTE"] = 0x0024  ,]]
     ["UP"] = 0x0027,
-    ["DOWN"] = 0x0024--[[ ,
-    ["LEFT"] = KeyCode.LEFT,
-    ["RIGHT"] = KeyCode.RIGHT,
-    ["SELECT"] = KeyCode.SELECT,
-    ["BACK"] = KeyCode.BACKWARD,
-    ["EXIT"] = KeyCode.EXIT,
-    ["MENU"] = KeyCode.CONTENTS_MENU,
-    ["SETTINGS"] = KeyCode.SETUP_MENU,
-    ["HOME"] = KeyCode.ROOT_MENU,
-    ["NUMBER0"] = KeyCode.NUMBER0_OR_NUMBER10,
-    ["NUMBER1"] = KeyCode.NUMBERS1,
-    ["NUMBER2"] = KeyCode.NUMBERS2,
-    ["NUMBER3"] = KeyCode.NUMBERS3,
-    ["NUMBER4"] = KeyCode.NUMBERS4,
-    ["NUMBER5"] = KeyCode.NUMBERS5,
-    ["NUMBER6"] = KeyCode.NUMBERS6,
-    ["NUMBER7"] = KeyCode.NUMBERS7,
-    ["NUMBER8"] = KeyCode.NUMBERS8,
-    ["NUMBER9"] = KeyCode.NUMBERS9  ]]
+    ["DOWN"] = 0x001F,
+    ["LEFT"] = 0x0020,
+    ["RIGHT"] = 0x0021,
+    ["SELECT"] = 0x0024,
+    ["BACK"] = 0x004B,
+    ["EXIT"] = 0x004B,
+    ["MENU"] = 0x0026,
+    ["SETTINGS"] = 0x001D,
+    ["HOME"] = 0x00AF,
+    ["NUMBER0"] = 0x0006,
+    ["NUMBER1"] = 0x0007,
+    ["NUMBER2"] = 0x0008,
+    ["NUMBER3"] = 0x0009,
+    ["NUMBER4"] = 0x000A,
+    ["NUMBER5"] = 0x000B,
+    ["NUMBER6"] = 0x000C,
+    ["NUMBER7"] = 0x000D,
+    ["NUMBER8"] = 0x000E,
+    ["NUMBER9"] = 0x000F
   }
   --TODO may want to add SendKeyResponse handler to log errors if the cmd fails.
   local sequ_num = device:get_field(LAST_SEQUENCE) or 0
@@ -313,6 +320,9 @@ local function handle_send_key(driver, device, cmd)
   log.debug("cmd:", KEY_MAP[cmd.args.keyCode])
   log.debug(utils.stringify_table(av_cmd, "av_cmd", true))
   device:set_field(LAST_COMMAND, KEY_MAP[cmd.args.keyCode])
+  
+  local selected_enpoint = tonumber(device.preferences.selectAVEndpoint) or 2
+  log.debug("selectedEndpoint:", selected_enpoint)
   device:send(AVControl:Set(av_cmd))
 end
 
@@ -327,7 +337,9 @@ local remotec_controller = {
     NAME = "remotec-zxt-800",
     supported_capabilities = {
       capabilities.powerSource,
-      capabilities.keypadInput
+      capabilities.keypadInput,
+      capabilities.mediaPlayback,
+      capabilities.tV
     },
     zwave_handlers = {
         [cc.SIMPLE_AV_CONTROL] = {
@@ -335,12 +347,21 @@ local remotec_controller = {
         }
     },
     capability_handlers = {
-      [capabilities.switch.ID] = {
-        [capabilities.switch.commands.on.NAME] = switch_handler_factory(0x00), -- Power
-        [capabilities.switch.commands.off.NAME] = switch_handler_factory(0x0D) -- Mute
-      },
       [capabilities.keypadInput.ID] = {
         [capabilities.keypadInput.commands.sendKey.NAME] = handle_send_key
+      },
+      [capabilities.mediaPlayback.ID] = {
+        [capabilities.mediaPlayback.commands.play.NAME] = mediaPlayback_handler,
+        [capabilities.mediaPlayback.commands.stop.NAME] = mediaPlayback_handler,
+        [capabilities.mediaPlayback.commands.rewind.NAME] = mediaPlayback_handler,
+        [capabilities.mediaPlayback.commands.fastForward.NAME] = mediaPlayback_handler,
+        [capabilities.mediaPlayback.commands.pause.NAME] = mediaPlayback_handler
+      },
+      [capabilities.tV.ID] = {
+      [capabilities.tV.commands.channelDown.NAME] = tV_handler,
+      [capabilities.tV.commands.channelUp.NAME] = tV_handler,
+      [capabilities.tV.commands.volumeDown.NAME] = tV_handler,
+      [capabilities.tV.commands.volumeUp.NAME] = tV_handler
       }
     },
     lifecycle_handlers = {
@@ -351,5 +372,6 @@ local remotec_controller = {
     },
     can_handle = can_handle_remotec
   }
+
 
 return remotec_controller
