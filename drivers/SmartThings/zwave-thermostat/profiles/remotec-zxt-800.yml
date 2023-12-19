@@ -70,56 +70,6 @@ preferences:
           31: Auto Mode
           32: Fan Mode
       default: 0
-  - name: "learnAVIRCode"
-    title: "Learn AV IR code"
-    description: "Learn AV IR code"
-    preferenceType: enumeration
-    required: false
-    definition:
-      options:
-          0: Power
-          1: Input
-          2: Menu
-          3: Smart
-          4: Guide
-          5: Back
-          6: Up
-          7: Down
-          8: OK
-          9: Left
-          10: Right
-          11: VOL+
-          12: VOL-
-          13: Mute
-          14: Home
-          15: CH+
-          16: CH-
-          17: Skip-
-          18: Stop
-          19: Skip+
-          20: Play
-          21: Pause
-          22: Rewind
-          23: Record
-          24: Fast Forward
-          25: Red
-          26: Green
-          27: Yellow
-          28: Blue
-          29: 0
-          30: 1
-          31: 2
-          32: 3
-          33: 4
-          34: 5
-          35: 6
-          36: 7
-          37: 8
-          38: 9
-          39: 10
-          40: Info
-          41: Text
-      default: 0
   - name: "setIRCodefrombuiltinACL"
     title: "Set IR Code from Library"
     description: "Set IR Code from Library"
@@ -221,17 +171,6 @@ preferences:
           247: -4.5°C
           246: -5°C
         default: 0
-  - name: "selectAVEndpoint"
-    title: "Select AV Endpoint"
-    description: "Select AV Endpoint"
-    preferenceType: enumeration
-    required: false
-    definition:
-        options:
-          2: end point 2 (AV1)
-          3: end point 3 (AV2)
-          4: end point 4 (AV3)
-        default: 2
   - name: "calibrateHumidityReading"
     title: "Calibrate humidity reading"
     description: "Calibrate humidity reading"
