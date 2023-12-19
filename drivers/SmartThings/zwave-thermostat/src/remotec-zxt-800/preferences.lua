@@ -57,9 +57,9 @@ preferences.update_preferences = function(driver, device, args)
     local synchronized = device:get_field(id)
     if preferences and preferences[id] and (oldPreferenceValue ~= newParameterValue or synchronized == false) then
       device:send(Configuration:Set({ parameter_number = preferences[id].parameter_number, size = preferences[id].size,
-        configuration_value = newParameterValue }):to_endpoint(0))
+        configuration_value = newParameterValue }))
       device:set_field(id, true, { persist = true })
-      device:send(Configuration:Get({ parameter_number = preferences[id].parameter_number }):to_endpoint(0))
+      --device:send(Configuration:Get({ parameter_number = preferences[id].parameter_number }))
     end
   end
 end
