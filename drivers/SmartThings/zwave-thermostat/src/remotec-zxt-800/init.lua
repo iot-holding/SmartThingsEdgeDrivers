@@ -173,7 +173,10 @@ local function device_init(driver, device, event)
     capabilities.mediaPlayback.commands.rewind.NAME
   }))
 
-  device:emit_event(capabilities.mediaPlayback.playbackStatus('playing'))
+  device.thread:call_with_delay(1, function()
+    device:emit_event(capabilities.mediaPlayback.playbackStatus('stopped'))
+  end)
+
 end
 
 local remotec_controller = {
