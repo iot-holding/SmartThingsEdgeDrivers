@@ -21,14 +21,6 @@ local socket = require "cosock.socket"
 local cc = require "st.zwave.CommandClass"
 --- @type remotec-zxt-800.SimpleAVControl
 local AVControl = (require "remotec-zxt-800.SimpleAVControl")({version = 4})
---[[ --- @type st.zwave.CommandClass.SensorMultilevel
-local SensorMultiLevel = (require "st.zwave.CommandClass.SensorMultilevel")({version = 2})
---- @type st.zwave.CommandClass.ThermostatFanMode
-local ThermostatFanMode = (require "st.zwave.CommandClass.ThermostatFanMode")({ version = 3 })
---- @type st.zwave.CommandClass.ThermostatMode
-local ThermostatMode = (require "st.zwave.CommandClass.ThermostatMode")({ version = 2 }) ]]
---- @type st.zwave.CommandClass.Configuration
-local Configuration = (require "st.zwave.CommandClass.Configuration")({ version = 1 })
 
 local log = require "log"
 local utils = require "st.utils"
@@ -64,36 +56,15 @@ local function can_handle_remotec(opts, driver, device, ...)
   return false
 end
 
-local function update_preferences(driver, device, args)
-  --[[ log.debug(utils.stringify_table(device, "### device", true))
-  log.debug(utils.stringify_table(args, "### args", args)) ]]
-  local preferences = preferencesMap.get_device_parameters(device)
-  for id, value in pairs(device.preferences) do
-    local oldPreferenceValue = args and args["old_st_store"] and args.old_st_store["preferences"] and
-        args.old_st_store.preferences[id] or nil
-    local newParameterValue = device.preferences[id]
-    local synchronized = device:get_field(id)
-    if preferences and preferences[id] and (oldPreferenceValue ~= newParameterValue or synchronized == false) then
-      device:send(Configuration:Set({
-        parameter_number = preferences[id].parameter_number,
-        size = preferences[id].size,
-        configuration_value = newParameterValue
-      }))
-      device:set_field(id, true, { persist = true })
-      --device:send(Configuration:Get({ parameter_number = preferences[id].parameter_number }))
-    end
-  end
-end
-
 local function info_changed(driver, device, event, args)
   preferencesMap.update_preferences(driver, device, args)
   end
 
 local function simpleAVHandler(driver, device, event, args)
-    log.debug("simpleAVHandler called!")
+  log.debug("simpleAVHandler called!")
   log.debug(utils.stringify_table(event, "simpleAVHandler event", true))
   log.debug(utils.stringify_table(args, "simpleAVHandler args", true))
-  end
+end
 
 local function find_child(parent, ep_id)
     if ep_id == ENDPOINTS.parent then
@@ -109,28 +80,6 @@ local function do_refresh(driver, device, command)
 end
 local function component_to_endpoint(device, component)
   return { ENDPOINTS.parent }
-end
-
-local function switch_handler(driver, device, command)
-  local cmd = 0x0027
-  local event = cmd == 0 and capabilities.switch.switch.on() or capabilities.switch.switch.off()
-  local sequ_num = device:get_field(LAST_SEQUENCE) or 0
-
-  if sequ_num < 1 then
-    sequ_num = sequ_num + 1
-  elseif sequ_num >= 65535 then
-    sequ_num = 0
-  else
-    sequ_num = sequ_num + 1
-  end
-
-  device:set_field(LAST_SEQUENCE, sequ_num)
-  local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = cmd } } }
-  log.debug("cmd:", cmd)
-  log.debug(utils.stringify_table(av_cmd, "av_cmd", true))
-  device:set_field(LAST_COMMAND, cmd)
-  device:send(AVControl:Set(av_cmd))
-  device:emit_event(event)
 end
 
 local function create_child_devices(driver, device)
@@ -192,35 +141,6 @@ local function device_added(driver, device, event)
   device:emit_event(capabilities.switch.switch.off())
 end
 
-local tV_handler = function(self,device, cmd)
-
-  local KEY_MAP = {
-    ["channelDown"] = 0x0005,
-    ["channelUp"] = 0x0004,
-    ["volumeDown"] = 0x0002,
-    ["volumeUp"] = 0x0003
-  }
-
-  local sequ_num = device:get_field(LAST_SEQUENCE) or 0
-
-  if sequ_num < 1 then
-    sequ_num = sequ_num + 1
-  elseif sequ_num >= 65535 then
-    sequ_num = 0
-  else
-    sequ_num = sequ_num + 1
-  end
-
-  device:set_field(LAST_SEQUENCE, sequ_num)
-  local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[cmd.args.keyCode] } } }
-  log.debug("cmd:", KEY_MAP[cmd.args.keyCode])
-  log.debug(utils.stringify_table(av_cmd, "av_cmd", true))
-  device:set_field(LAST_COMMAND, KEY_MAP[cmd.args.keyCode])
-  local selected_enpoint = tonumber(device.preferences.selectAVEndpoint) or 2
-  log.debug("selectedEndpoint:", selected_enpoint)
-  device:send(AVControl:Set(av_cmd)):to_endpoint(selected_enpoint)
-end
-
 local simple_av_handler = function(self, device, cmd)
   local KEY_MAP = {
     ["on"] = 0x0027,
@@ -257,8 +177,8 @@ local simple_av_handler = function(self, device, cmd)
   }
   local sequ_num = device:get_field(LAST_SEQUENCE) or 0
   log.debug(utils.stringify_table(cmd, "### cmd", true))
-  local cmd = cmd.args and cmd.args.keyCode or cmd.command or cmd
-  local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[cmd] } } }
+  local command = cmd.args and cmd.args.keyCode or cmd.command or cmd
+  local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[command] } } }
   local selected_enpoint = tonumber(device.preferences.selectAVEndpoint) or 2
 
   log.debug(utils.stringify_table(device.preferences, "### device.preferences", true))
@@ -274,92 +194,26 @@ local simple_av_handler = function(self, device, cmd)
   device:set_field(LAST_SEQUENCE, sequ_num)
 
   --log.debug(utils.stringify_table(av_cmd, "av_cmd", true))
-  device:set_field(LAST_COMMAND, cmd)
+  device:set_field(LAST_COMMAND, command)
 
   log.debug("selectedEndpoint:", selected_enpoint)
   --device:send(AVControl:Set(av_cmd))
   device:send_to_component(AVControl:Set(av_cmd), cmd.component)
 end
 
-local configure_handler = function(self, device)
-
-  --Note NV, LK, and NK features are not checked to determine if only a subset of these should be supported
-  if device:supports_capability_by_id(capabilities.keypadInput.ID) then
-    device:emit_event(capabilities.keypadInput.supportedKeyCodes({
-      "UP",
-      "DOWN",
-      "LEFT",
-      "RIGHT",
-      "SELECT",
-      "BACK",
-      "EXIT",
-      "MENU",
-      "SETTINGS",
-      "HOME",
-      "NUMBER0",
-      "NUMBER1",
-      "NUMBER2",
-      "NUMBER3",
-      "NUMBER4",
-      "NUMBER5",
-      "NUMBER6",
-      "NUMBER7",
-      "NUMBER8",
-      "NUMBER9"
-    }))
-  end
-end
-
---[[ local function handle_send_key(driver, device, cmd)
-  local KEY_MAP = {
-    ["UP"] = 0x0027,
-    ["DOWN"] = 0x001F,
-    ["LEFT"] = 0x0020,
-    ["RIGHT"] = 0x0021,
-    ["SELECT"] = 0x0024,
-    ["BACK"] = 0x004B,
-    ["EXIT"] = 0x004B,
-    ["MENU"] = 0x0026,
-    ["SETTINGS"] = 0x001D,
-    ["HOME"] = 0x00AF,
-    ["NUMBER0"] = 0x0006,
-    ["NUMBER1"] = 0x0007,
-    ["NUMBER2"] = 0x0008,
-    ["NUMBER3"] = 0x0009,
-    ["NUMBER4"] = 0x000A,
-    ["NUMBER5"] = 0x000B,
-    ["NUMBER6"] = 0x000C,
-    ["NUMBER7"] = 0x000D,
-    ["NUMBER8"] = 0x000E,
-    ["NUMBER9"] = 0x000F
-  }
-  --TODO may want to add SendKeyResponse handler to log errors if the cmd fails.
-  local sequ_num = device:get_field(LAST_SEQUENCE) or 0
-
-  if sequ_num < 1 then
-    sequ_num = sequ_num + 1
-  elseif sequ_num >= 65535 then
-    sequ_num = 0
-  else
-    sequ_num = sequ_num + 1
-  end
-
-  device:set_field(LAST_SEQUENCE, sequ_num)
-  local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[cmd.args.keyCode] } } }
-  log.debug("cmd:", KEY_MAP[cmd.args.keyCode])
-  log.debug(utils.stringify_table(av_cmd, "av_cmd", true))
-  device:set_field(LAST_COMMAND, KEY_MAP[cmd.args.keyCode])
-
-  local selected_enpoint = tonumber(device.preferences.selectAVEndpoint) or 2
-  log.debug("selectedEndpoint:", selected_enpoint)
-  device:send(AVControl:Set(av_cmd))
-end ]]
-
 local function device_init(driver, device, event)
   if device.network_type == st_device.NETWORK_TYPE_ZWAVE then
     device:set_find_child(find_child)
     device:set_component_to_endpoint_fn(component_to_endpoint)
   end
+
+  device:emit_event(capabilities.mediaPlayback.supportedPlaybackCommands({
+    capabilities.mediaPlayback.commands.play.NAME,
+    capabilities.mediaPlayback.commands.pause.NAME,
+    capabilities.mediaPlayback.commands.stop.NAME,
+    capabilities.mediaPlayback.commands.fastForward.NAME,
+    capabilities.mediaPlayback.commands.rewind.NAME
+  }))
 end
 
 local remotec_controller = {
@@ -400,8 +254,7 @@ local remotec_controller = {
     lifecycle_handlers = {
         init = device_init,
         added = device_added,
-        infoChanged = info_changed--[[ ,
-        doConfigure = configure_handler ]]
+        infoChanged = info_changed
     },
     can_handle = can_handle_remotec
   }
