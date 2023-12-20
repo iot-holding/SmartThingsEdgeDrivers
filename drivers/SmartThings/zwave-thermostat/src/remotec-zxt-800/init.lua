@@ -22,6 +22,7 @@ local cc = require "st.zwave.CommandClass"
 local AVControl = (require "remotec-zxt-800.SimpleAVControl")({version = 4})
 
 local utils = require "st.utils"
+local log = require "log"
 
 local LAST_COMMAND = 'last_command'
 local LAST_SEQUENCE = 'last_sequence'
@@ -116,6 +117,9 @@ end
 local simple_av_handler = function(self, device, cmd)
   local sequ_num = device:get_field(LAST_SEQUENCE) or 0
   local command = cmd.args and cmd.args.keyCode or cmd.command or cmd
+  --[[ local dst_channel = device.preferences.selectAVEndpoint or 2
+  log.debug("dst_channel: " .. dst_channel)
+  local av_cmd = { dst_channels = dst_channel, sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[command] } } } ]]
   local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[command] } } }
 
   if sequ_num < 1 then
