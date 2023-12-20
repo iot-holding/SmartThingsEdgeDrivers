@@ -72,7 +72,7 @@ preferences:
     required: false
     definition:
         options:
-          2: end point 2 (AV1)
-          3: end point 3 (AV2)
-          4: end point 4 (AV3)
+          2: "AV endpoint #1"
+          3: "AV endpoint #2"
+          4: "AV endpoint #3"
         default: 2
