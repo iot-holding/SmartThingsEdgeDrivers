@@ -10,6 +10,8 @@ components:
         version: 1
       - id: tV
         version: 1
+      - id: tvChannel
+        version: 1
       - id: refresh
         version: 1
     categories:
@@ -22,57 +24,47 @@ preferences:
     required: false
     definition:
       options:
-          0: Power
-          1: Input
-          2: Menu
-          3: Smart
-          4: Guide
-          5: Back
-          6: Up
-          7: Down
-          8: OK
-          9: Left
-          10: Right
-          11: VOL+
-          12: VOL-
-          13: Mute
-          14: Home
-          15: CH+
-          16: CH-
-          17: Skip-
-          18: Stop
-          19: Skip+
-          20: Play
-          21: Pause
-          22: Rewind
-          23: Record
-          24: Fast Forward
-          25: Red
-          26: Green
-          27: Yellow
-          28: Blue
-          29: 0
-          30: 1
-          31: 2
-          32: 3
-          33: 4
-          34: 5
-          35: 6
-          36: 7
-          37: 8
-          38: 9
-          39: 10
-          40: Info
-          41: Text
+          0: Please select a command
+          1: Power
+          2: Input
+          3: Menu
+          4: Smart
+          5: Guide
+          6: Back
+          7: Up
+          8: Down
+          9: OK
+          10: Left
+          11: Right
+          12: VOL+
+          13: VOL-
+          14: Mute
+          15: Home
+          16: CH+
+          17: CH-
+          18: Skip-
+          19: Stop
+          20: Skip+
+          21: Play
+          22: Pause
+          23: Rewind
+          24: Record
+          25: Fast Forward
+          26: Red
+          27: Green
+          28: Yellow
+          29: Blue
+          30: 0
+          31: 1
+          32: 2
+          33: 3
+          34: 4
+          35: 5
+          36: 6
+          37: 7
+          38: 8
+          39: 9
+          40: 10
+          41: Info
+          42: Text
       default: 0
-  - name: "selectAVEndpoint"
-    title: "Select AV Endpoint"
-    description: "Select AV Endpoint"
-    preferenceType: enumeration
-    required: false
-    definition:
-        options:
-          2: "AV endpoint #1"
-          3: "AV endpoint #2"
-          4: "AV endpoint #3"
-        default: 2

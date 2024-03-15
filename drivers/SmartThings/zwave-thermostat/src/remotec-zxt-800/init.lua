@@ -26,6 +26,12 @@ local log = require "log"
 
 local LAST_COMMAND = 'last_command'
 local LAST_SEQUENCE = 'last_sequence'
+local CURRENT_VOLUME = 20
+
+local ENDPOINTS = {
+  parent = 1,
+  children = 3
+}
 
 local supported_modes = {
   capabilities.thermostatMode.thermostatMode.off.NAME,
@@ -49,15 +55,15 @@ local KEY_MAP = {
   ["channelUp"] = 0x0004,
   ["volumeDown"] = 0x0002,
   ["volumeUp"] = 0x0003,
-  ["UP"] = 0x0027,
+  ["UP"] = 0x001E,
   ["DOWN"] = 0x001F,
   ["LEFT"] = 0x0020,
   ["RIGHT"] = 0x0021,
   ["SELECT"] = 0x0024,
   ["BACK"] = 0x004B,
   ["EXIT"] = 0x004B,
-  ["MENU"] = 0x0026,
-  ["SETTINGS"] = 0x001D,
+  ["MENU"] = 0x001D,
+  ["SETTINGS"] = 0x0115,
   ["HOME"] = 0x00AF,
   ["NUMBER0"] = 0x0006,
   ["NUMBER1"] = 0x0007,
@@ -72,12 +78,14 @@ local KEY_MAP = {
 }
 
 local REMOTEC_FINGERPRINTS = {
-    {mfr = 0x5254, prod = 0x0004, model = 0x8492} -- Remotec ZXT 800
+    {mfr = 0x5254, prod = 0x0101, model = 0x8493}, -- Remotec ZXT 800 NEW EU
+    {mfr = 0x5254, prod = 0x0004, model = 0x8492} -- REMOTEC ZXT 800 OLD EU
 }
 
 local function can_handle_remotec(opts, driver, device, ...)
   for _, fingerprint in ipairs(REMOTEC_FINGERPRINTS) do
       if device:id_match(fingerprint.mfr, fingerprint.prod, fingerprint.model) then
+        --log.debug("device found with ID:", fingerprint.model)
           return true
       end
   end
@@ -102,16 +110,18 @@ local function component_to_endpoint(device, component)
 end
 
 local function create_child_devices(driver, device)
-  local name = "ZXT 800 AV"
-  local metadata = {
-    type = "EDGE_CHILD",
-    label = name,
-    profile = "remotec-zxt-800-child",
-    parent_device_id = device.id,
-    parent_assigned_child_key = string.format("%02X", 2),
-    vendor_provided_label = name,
-  }
-  driver:try_create_device(metadata)
+  for i = 1, ENDPOINTS.children do
+    local name = string.format("%s %s", "ZXT 800", "AV #" .. i+1)
+    local metadata = {
+      type = "EDGE_CHILD",
+      label = name,
+      profile = "remotec-zxt-800-child",
+      parent_device_id = device.id,
+      parent_assigned_child_key = string.format("%02X", i+1),
+      vendor_provided_label = name,
+    }
+    driver:try_create_device(metadata)
+  end
 end
 
 local simple_av_handler = function(self, device, cmd)
@@ -120,24 +130,30 @@ local simple_av_handler = function(self, device, cmd)
   --[[ local dst_channel = device.preferences.selectAVEndpoint or 2
   log.debug("dst_channel: " .. dst_channel)
   local av_cmd = { dst_channels = dst_channel, sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[command] } } } ]]
+
+ 
   local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[command] } } }
 
-  if sequ_num < 1 then
-    sequ_num = sequ_num + 1
-  elseif sequ_num >= 65535 then
-    sequ_num = 0
-  else
-    sequ_num = sequ_num + 1
-  end
+    if sequ_num < 1 then
+      sequ_num = sequ_num + 1
+    elseif sequ_num >= 65535 then
+      sequ_num = 0
+    else
+      sequ_num = sequ_num + 1
+    end
+  
+    device:set_field(LAST_SEQUENCE, sequ_num)
+    device:set_field(LAST_COMMAND, command)
+    device:send_to_component(AVControl:Set(av_cmd), cmd.component)
+ 
 
-  device:set_field(LAST_SEQUENCE, sequ_num)
-  device:set_field(LAST_COMMAND, command)
-  device:send_to_component(AVControl:Set(av_cmd), cmd.component)
   if command == "on" then
     device:emit_event(capabilities.switch.switch.on())
   elseif command == "off" then
     device:emit_event(capabilities.switch.switch.off())
   end
+
+  
 end
 
 local function device_added(driver, device, event)
@@ -211,7 +227,21 @@ local remotec_controller = {
       [capabilities.tV.commands.channelUp.NAME] = simple_av_handler,
       [capabilities.tV.commands.volumeDown.NAME] = simple_av_handler,
       [capabilities.tV.commands.volumeUp.NAME] = simple_av_handler
+    },
+    [capabilities.tvChannel.ID] = {
+      [capabilities.tvChannel.commands.channelUp.NAME] = simple_av_handler,
+      [capabilities.tvChannel.commands.channelDown.NAME] = simple_av_handler
     }
+    --[capabilities.audioVolume.ID] = {
+    --  [capabilities.audioVolume.commands.setVolume.NAME] = simple_av_handler,
+    -- [capabilities.audioVolume.commands.volumeUp.NAME] = simple_av_handler,
+    -- [capabilities.audioVolume.commands.volumeDown.NAME] = simple_av_handler
+    --},
+    --[capabilities.audioMute.ID] = {
+    --  [capabilities.audioMute.commands.setMute.NAME] = simple_av_handler,
+    --  [capabilities.audioMute.commands.mute.NAME] = simple_av_handler,
+    --  [capabilities.audioMute.commands.unmute.NAME] = simple_av_handler
+    --}
   },
   lifecycle_handlers = {
     init = device_init,

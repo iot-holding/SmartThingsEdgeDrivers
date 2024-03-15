@@ -41,7 +41,9 @@ local devices = {
     MATCHING_MATRIX = {
       mfrs = 0x5254,
       product_types = 0x0004,
-      product_ids = 0x8492
+      produc_types_new = 0x0101,
+      product_ids = 0x8492,
+      product_ids_new = 0x8493
     },
     PARAMETERS = REMOTEC_ZXT800_ZWAVE.PARAMETERS
   }
@@ -50,16 +52,32 @@ local devices = {
 local preferences = {}
 
 preferences.update_preferences = function(driver, device, args)
+  log.debug("device",device)
   local preferences = preferences.get_device_parameters(device)
   for id, value in pairs(device.preferences) do
     local oldPreferenceValue = args and args["old_st_store"] and args.old_st_store["preferences"] and args.old_st_store.preferences[id] or nil
+   
+
     local newParameterValue = device.preferences[id]
+    log.debug("Parameter Value before:", newParameterValue)
+    if newParameterValue ~= 0 and (preferences[id].parameter_number == 25 or preferences[id].parameter_number == 26) then
+      newParameterValue = device.preferences[id]-1
+      log.debug("Parameter Value changed:", newParameterValue)
+    else
+      newParameterValue = device.preferences[id]
+      log.debug("Parameter Value:", newParameterValue)
+    end
+
+
     local synchronized = device:get_field(id)
-    if preferences and preferences[id] and (oldPreferenceValue ~= newParameterValue or synchronized == false) then
-      device:send(Configuration:Set({ parameter_number = preferences[id].parameter_number, size = preferences[id].size,
-        configuration_value = newParameterValue }))
-      device:set_field(id, true, { persist = true })
-      --device:send(Configuration:Get({ parameter_number = preferences[id].parameter_number }))
+    if newParameterValue ~= -1 then
+      if preferences and preferences[id] and (oldPreferenceValue ~= newParameterValue or synchronized == false) then
+        log.debug("Paramter changed to", newParameterValue);
+        device:send(Configuration:Set({ parameter_number = preferences[id].parameter_number, size = preferences[id].size,
+          configuration_value = newParameterValue }))
+        device:set_field(id, true, { persist = true })
+        --device:send(Configuration:Get({ parameter_number = preferences[id].parameter_number }))
+      end
     end
   end
 end
@@ -70,6 +88,12 @@ preferences.get_device_parameters = function(zw_device)
           device.MATCHING_MATRIX.mfrs,
           device.MATCHING_MATRIX.product_types,
           device.MATCHING_MATRIX.product_ids) then
+      return device.PARAMETERS
+    end
+   if zw_device:id_match(
+          device.MATCHING_MATRIX.mfrs,
+          device.MATCHING_MATRIX.produc_types_new,
+           device.MATCHING_MATRIX.product_ids_new) then
       return device.PARAMETERS
     end
   end
