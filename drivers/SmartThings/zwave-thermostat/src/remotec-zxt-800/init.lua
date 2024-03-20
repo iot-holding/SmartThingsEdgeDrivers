@@ -127,9 +127,6 @@ end
 local simple_av_handler = function(self, device, cmd)
   local sequ_num = device:get_field(LAST_SEQUENCE) or 0
   local command = cmd.args and cmd.args.keyCode or cmd.command or cmd
-  --[[ local dst_channel = device.preferences.selectAVEndpoint or 2
-  log.debug("dst_channel: " .. dst_channel)
-  local av_cmd = { dst_channels = dst_channel, sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[command] } } } ]]
 
  
   local av_cmd = { sequence_number = sequ_num, key_attributes = 0x00, vg = { { command = KEY_MAP[command] } } }
@@ -205,6 +202,7 @@ local remotec_controller = {
     capabilities.powerSource,
     capabilities.keypadInput,
     capabilities.mediaPlayback,
+    capabilities.button,
     capabilities.tV
   },
   capability_handlers = {
@@ -225,23 +223,11 @@ local remotec_controller = {
     [capabilities.tV.ID] = {
       [capabilities.tV.commands.channelDown.NAME] = simple_av_handler,
       [capabilities.tV.commands.channelUp.NAME] = simple_av_handler,
-      [capabilities.tV.commands.volumeDown.NAME] = simple_av_handler,
-      [capabilities.tV.commands.volumeUp.NAME] = simple_av_handler
     },
     [capabilities.tvChannel.ID] = {
       [capabilities.tvChannel.commands.channelUp.NAME] = simple_av_handler,
       [capabilities.tvChannel.commands.channelDown.NAME] = simple_av_handler
     }
-    --[capabilities.audioVolume.ID] = {
-    --  [capabilities.audioVolume.commands.setVolume.NAME] = simple_av_handler,
-    -- [capabilities.audioVolume.commands.volumeUp.NAME] = simple_av_handler,
-    -- [capabilities.audioVolume.commands.volumeDown.NAME] = simple_av_handler
-    --},
-    --[capabilities.audioMute.ID] = {
-    --  [capabilities.audioMute.commands.setMute.NAME] = simple_av_handler,
-    --  [capabilities.audioMute.commands.mute.NAME] = simple_av_handler,
-    --  [capabilities.audioMute.commands.unmute.NAME] = simple_av_handler
-    --}
   },
   lifecycle_handlers = {
     init = device_init,
